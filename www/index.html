@@ -7,22 +7,35 @@
 </head>
 <body>
 
-    <h1>Rebalance Tester</h1>
-    <button id="test-load-balancer">Test Load Balancer</button>
-    <button id="stop-test-load-balancer">Stop Test Load Balancer</button>
+    <h1 style="text-align: center;">Rebalance Tester</h1>
 
-    <ol id="response-container">
-    </ol>
-
-
-    <button id="test-web-service">Test Web Service</button>
-    <button id="stop-test-web-service">Stop Test Web Service</button>
-
-    <ol id="web-service-response-container">
-    </ol>
-
+    <div style="display: flex; justify-content: space-around; min-width: 300px; margin: auto;">
+        <div>
+            <h2>Test Load Balancer</h2>
+            <label>&nbsp;</label> <br>
+            <button id="test-load-balancer">Start</button>
+            <button id="stop-test-load-balancer">Stop</button>
+        
+            <ol id="response-container">
+            </ol>
+        </div>
+    
+    
+        <div>
+            <h2>Test Web Service</h2>
+            <label for="web-service-address">Alamat Web Service</label>
+            <input name="web-service-address" id="web-service-address" type="text"> <br>
+            <button id="test-web-service">Start</button>
+            <button id="stop-test-web-service">Stop</button>
+        
+            <ol id="web-service-response-container">
+            </ol>
+        </div>
+    
+    </div>    
 
     <script>
+
         let isStopTestLoadBalancer = false
         let stopTestLoadBalancerDOM = document.getElementById("stop-test-load-balancer")
         stopTestLoadBalancerDOM.addEventListener('click', function() {
@@ -58,7 +71,7 @@
                 })
         })
 
-        async function testWebService() {
+        async function testWebService(url) {
             let containerDOM = document.getElementById("web-service-response-container")
             for (let i = 0; i < 100; i++) {
                 if (isStopTestWebService) {
@@ -69,7 +82,7 @@
                 }
 
                 try {
-                    let sorts = await fetchSorts("http://localhost:8081/api/sorts", { withJSON: false })
+                    let sorts = await fetchSorts(`${url}/api/sorts`, { withJSON: false })
                     let li = `<li>${sorts}</li>`
                     containerDOM.innerHTML += li                    
                     containerDOM.scrollTop = containerDOM.scrollHeight;
@@ -110,10 +123,16 @@
 
         let testWebServiceDOM = document.getElementById("test-web-service")
         testWebServiceDOM.addEventListener("click", () => {
-            testWebService()
+            let webServiceAddressDOM = document.getElementById("web-service-address")
+            let webServiceAddress = webServiceAddressDOM.value
+
+            if (!webServiceAddress) {
+                window.alert("Alamat Web Service harus diisi")
+                return
+            }
+
+            testWebService(webServiceAddress)
         })
-
-
     </script>
     
     <style>
