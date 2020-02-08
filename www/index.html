@@ -37,16 +37,7 @@
     <script>
 
         let isStopTestLoadBalancer = false
-        let stopTestLoadBalancerDOM = document.getElementById("stop-test-load-balancer")
-        stopTestLoadBalancerDOM.addEventListener('click', function() {
-            isStopTestLoadBalancer = true
-        })
-
         let isStopTestWebService = false
-        let stopTestWebServiceDOM = document.getElementById("stop-test-web-service")
-        stopTestWebServiceDOM.addEventListener('click', function() {
-            isStopTestWebService = true
-        })
 
         const fetchSorts = (url, opts) => new Promise((resolve, reject) => {  
             fetch(url)
@@ -118,6 +109,9 @@
 
         let testLoadBalancerDOM = document.getElementById("test-load-balancer")
         testLoadBalancerDOM.addEventListener("click", () => {
+            // disable the start button
+            testLoadBalancerDOM.setAttribute('disabled', true)
+
             testLoadBalancer()
         })
 
@@ -131,8 +125,33 @@
                 return
             }
 
+            // disable the start button
+            testWebServiceDOM.setAttribute('disabled', true)
+
             testWebService(webServiceAddress)
         })
+
+        let stopTestLoadBalancerDOM = document.getElementById("stop-test-load-balancer")
+        stopTestLoadBalancerDOM.addEventListener('click', function() {
+            isStopTestLoadBalancer = true
+            // reenable the start button after 1000 ms
+            testLoadBalancerDOM.removeAttribute('disabled')
+            setTimeout(function() {
+                isStopTestLoadBalancer = false
+            }, 1000)
+        })
+
+        let stopTestWebServiceDOM = document.getElementById("stop-test-web-service")
+        stopTestWebServiceDOM.addEventListener('click', function() {
+            // reenable the start button after 1000 ms
+            isStopTestWebService = true
+            testWebServiceDOM.removeAttribute('disabled')
+            setTimeout(function() {
+                isStopTestWebService = false
+            }, 1000)
+        })
+
+
     </script>
     
     <style>
