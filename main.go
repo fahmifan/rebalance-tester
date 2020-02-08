@@ -34,42 +34,6 @@ type service struct {
 	rebalanceURL string
 }
 
-func (s *service) handleSorts(w http.ResponseWriter, r *http.Request) {
-	resp, err := http.Get(s.rebalanceURL + "/api/sorts")
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= 400 {
-		w.WriteHeader(resp.StatusCode)
-		w.Write([]byte("request failed"))
-		return
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(resp.StatusCode)
-		w.Write([]byte(err.Error()))
-	}
-
-	w.WriteHeader(http.StatusOK)
-
-	j, err := json.Marshal(map[string]string{"message": string(body)})
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(resp.StatusCode)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	w.Write(j)
-}
-
 func serveWWW(r chi.Router, path string) {
 	workDir, _ := os.Getwd()
 	filesDir := filepath.Join(workDir, "www")
@@ -90,4 +54,48 @@ func serveWWW(r chi.Router, path string) {
 	r.Get(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fs.ServeHTTP(w, r)
 	}))
+}
+
+func (s *service) handleSorts(w http.ResponseWriter, r *http.Request) {
+	resp, err := http.Get(s.rebalanceURL + "/api/sorts")
+	if err != nil {
+		log.Error(err)
+		writeError(w, http.StatusInternalServerError, []byte(err.Error()))
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		writeError(w, resp.StatusCode, []byte("request failed"))
+		return
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Error(err)
+		writeError(w, resp.StatusCode, []byte(err.Error()))
+		return
+	}
+
+	writeJSONOK(w, map[string]interface{}{"message": string(body)})
+}
+
+func writeError(w http.ResponseWriter, statusCode int, msg []byte) {
+	w.WriteHeader(statusCode)
+	w.Write(msg)
+}
+
+func writeJSONOK(w http.ResponseWriter, res map[string]interface{}) {
+	w.WriteHeader(http.StatusOK)
+
+	j, err := json.Marshal(res)
+	if err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
 }
