@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rebalance Tester</title>
+</head>
+<body>
+
+    <h1>Rebalance Tester</h1>
+    <button id="test-load-balancer">Test Load Balancer</button>
+    <button id="stop-test-load-balancer">Stop Test Load Balancer</button>
+
+    <ol id="response-container">
+    </ol>
+
+
+    <button id="test-web-service">Test Web Service</button>
+    <button id="stop-test-web-service">Stop Test Web Service</button>
+
+    <ol id="web-service-response-container">
+    </ol>
+
+
+    <script>
+        let isStopTestLoadBalancer = false
+        let stopTestLoadBalancerDOM = document.getElementById("stop-test-load-balancer")
+        stopTestLoadBalancerDOM.addEventListener('click', function() {
+            isStopTestLoadBalancer = true
+        })
+
+        let isStopTestWebService = false
+        let stopTestWebServiceDOM = document.getElementById("stop-test-web-service")
+        stopTestWebServiceDOM.addEventListener('click', function() {
+            isStopTestWebService = true
+        })
+
+        const fetchSorts = (url, opts) => new Promise((resolve, reject) => {  
+            fetch(url)
+                .then(res => {
+                    if (!opts || opts.withJSON) {
+                        return res.json()
+                    }
+
+                    return res.clone().text()
+                })
+                .then(res => {
+                    if (!opts || opts.withJSON) {
+                        resolve(res.message)
+                        return
+                    }
+
+                    resolve(res)
+                })
+                .catch(err => {
+                    console.error(err)
+                    reject(err)
+                })
+        })
+
+        async function testWebService() {
+            let containerDOM = document.getElementById("web-service-response-container")
+            for (let i = 0; i < 100; i++) {
+                if (isStopTestWebService) {
+                    let li = `<li>stopped</li>`
+                    containerDOM.innerHTML += li                    
+                    containerDOM.scrollTop = containerDOM.scrollHeight;
+                    break
+                }
+
+                try {
+                    let sorts = await fetchSorts("http://localhost:8081/api/sorts", { withJSON: false })
+                    let li = `<li>${sorts}</li>`
+                    containerDOM.innerHTML += li                    
+                    containerDOM.scrollTop = containerDOM.scrollHeight;
+                } catch (err) {
+                    console.error(err)
+                    break;
+                }
+            }
+        }
+
+        async function testLoadBalancer() {
+            let containerDOM = document.getElementById("response-container")
+            for (let i = 0; i < 100; i++) {
+                if (isStopTestLoadBalancer) {
+                    let li = `<li>stopped</li>`
+                    containerDOM.innerHTML += li                    
+                    containerDOM.scrollTop = containerDOM.scrollHeight;
+
+                    break
+                }
+
+                try {
+                    let sorts = await fetchSorts("/api/sorts")
+                    let li = `<li>${sorts}</li>`
+                    containerDOM.innerHTML += li                    
+                    containerDOM.scrollTop = containerDOM.scrollHeight;
+                } catch (err) {
+                    console.error(err)
+                    break;
+                }
+            }
+        }
+
+        let testLoadBalancerDOM = document.getElementById("test-load-balancer")
+        testLoadBalancerDOM.addEventListener("click", () => {
+            testLoadBalancer()
+        })
+
+        let testWebServiceDOM = document.getElementById("test-web-service")
+        testWebServiceDOM.addEventListener("click", () => {
+            testWebService()
+        })
+
+
+    </script>
+    
+    <style>
+        #response-container, #web-service-response-container {
+            display: flex; 
+            flex-direction: column;
+            max-height: 200px;
+            overflow-y: scroll;
+        }
+    </style>
+
+</body>
+</html>
