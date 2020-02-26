@@ -19,6 +19,9 @@ func main() {
 	serveWWW(r, "/")
 
 	rebalanceURL := "http://localhost:9000"
+	if val, ok := os.LookupEnv("PROXY_URL"); ok {
+		rebalanceURL = val
+	}
 
 	s := service{
 		rebalanceURL: rebalanceURL,
