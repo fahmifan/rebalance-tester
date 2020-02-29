@@ -1,2 +1,7 @@
 /.vscode
 /scripts/lab-aio
+/.ts
+/scripts/json
+/scripts/raw
+/scripts/result
+/**/*.DS_Store
