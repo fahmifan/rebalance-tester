@@ -3,7 +3,7 @@ import json
 import csv
 import math
 
-def get_new_dir_path(origin: str):
+def remove_first_path(origin: str):
     arr = origin.split("/")
     return "/".join(arr[1:len(arr)])
 
@@ -11,12 +11,13 @@ def get_new_dir_path(origin: str):
 def write_json(list_files: list, out_dir: str):
     cmd = "cat {} | vegeta report -type json > {}.json"
     for file in list_files:
-        origin = file['path']
-        new_dir = get_new_dir_path(origin)        
+        new_dir = remove_first_path(file['dir'])
         fdir = f"{out_dir}/{new_dir}"
-
         os.system(f"mkdir -p {fdir}")
-        final_cmd = cmd.format(origin, f"{out_dir}/{new_dir}")
+
+        new_fpath = remove_first_path(file['path'])
+        origin = file['path']
+        final_cmd = cmd.format(origin, f"{out_dir}/{new_fpath}")
         os.system(final_cmd)
 
 # get_list_files from root_dir
@@ -73,6 +74,35 @@ def calculate_total_mean_latencies(root_dir: str) -> object:
         total_mean_latencies_obj[key] = total_mean_latencies_obj[key]/5
 
     return total_mean_latencies_obj
+
+def calculate_avg_success_rate(root_dir: str) -> object:
+    list_test = []
+    list_files = get_list_files(root_dir)
+    for file in list_files:
+        with open(file['path']) as j:
+            fobj = json.load(j)
+            fobj['group_dir'] = file['dir']
+            list_test.append(fobj)
+    
+    total_avg_success_rate = {}
+    for test in list_test:
+        total_avg_success_rate[test['group_dir']] = {}
+    
+    all_status = {}
+    for test in list_test:
+        for key in test["status_codes"]:
+            # total_avg_success_rate[test['group_dir']][key] = 0
+            all_status[key] = key
+
+    for test in list_test:
+        for status in all_status:
+            total_avg_success_rate[test['group_dir']][status] = 0
+
+    for test in list_test:
+        for status in test["status_codes"]:
+            total_avg_success_rate[test['group_dir']][status] += test["status_codes"][status]
+
+    return total_avg_success_rate
 
 def total_mean_latencies_obj_in_second(root_dir: str):
     total_lat_obj = calculate_total_mean_latencies(root_dir)
