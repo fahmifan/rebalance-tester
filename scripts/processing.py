@@ -54,55 +54,93 @@ def get_list_test(root_dir: str) -> list:
 
     return list_test
 
+def get_last_path(path: str) -> str:
+    sp = path.split("/")
+    return sp[len(sp)-1]
+
 def calculate_total_mean_latencies(root_dir: str) -> object:
     list_test = []
     list_files = get_list_files(root_dir)
+    gourp_dir_key = 'group_dir'
     for file in list_files:
         with open(file['path']) as j:
             fobj = json.load(j)
-            fobj['group_dir'] = file['dir']
+            fobj[gourp_dir_key] = file['dir']
             list_test.append(fobj)
     
     total_mean_latencies_obj = {}
+    obj_count = {}
+    # init with 0
     for test in list_test:
-        total_mean_latencies_obj[test['group_dir']] = 0 
+        obj_count[test[gourp_dir_key]] = 0
+        total_mean_latencies_obj[test[gourp_dir_key]] = 0 
     
     for test in list_test:
-        total_mean_latencies_obj[test['group_dir']] += test["latencies"]["mean"]
+        obj_count[test[gourp_dir_key]] += 1
+        total_mean_latencies_obj[test[gourp_dir_key]] += test["latencies"]["mean"]
 
+    keys = []
     for key in total_mean_latencies_obj:
-        total_mean_latencies_obj[key] = total_mean_latencies_obj[key]/5
+        keys.append(key)
+        total_mean_latencies_obj[key] = total_mean_latencies_obj[key]/obj_count[key]
 
-    return total_mean_latencies_obj
+    keys.sort()
+    sorted_result = {}
+    for key in keys:
+        sorted_result[get_last_path(key)] = total_mean_latencies_obj[key]
+
+    return sorted_result
+
 
 def calculate_avg_success_rate(root_dir: str) -> object:
     list_test = []
     list_files = get_list_files(root_dir)
+    group_dir_key = 'group_dir'
     for file in list_files:
         with open(file['path']) as j:
             fobj = json.load(j)
-            fobj['group_dir'] = file['dir']
+            fobj[group_dir_key] = file['dir']
             list_test.append(fobj)
     
     total_avg_success_rate = {}
     for test in list_test:
-        total_avg_success_rate[test['group_dir']] = {}
-    
-    all_status = {}
+        total_avg_success_rate[test[group_dir_key]] = {}
+
+    status_keys = []   
     for test in list_test:
         for key in test["status_codes"]:
-            # total_avg_success_rate[test['group_dir']][key] = 0
-            all_status[key] = key
+            status_keys.append(key)
+ 
+    status_keys.sort()
+    all_status = {}
+    for key in status_keys:
+        all_status[key] = key
 
+    # init with 0
+    obj_count = {}
     for test in list_test:
+        obj_count[test[group_dir_key]] = 0
         for status in all_status:
-            total_avg_success_rate[test['group_dir']][status] = 0
+            total_avg_success_rate[test[group_dir_key]][status] = 0
 
     for test in list_test:
+        obj_count[test[group_dir_key]] += 1
         for status in test["status_codes"]:
-            total_avg_success_rate[test['group_dir']][status] += test["status_codes"][status]
+            total_avg_success_rate[test[group_dir_key]][status] += test["status_codes"][status]
 
-    return total_avg_success_rate
+    success_rate_keys = []
+    for key in total_avg_success_rate:
+        success_rate_keys.append(key)
+
+    success_rate_keys.sort()
+    sorted_result = {}
+    for key in success_rate_keys:
+        for code in total_avg_success_rate[key]:
+            total_avg_success_rate[key][code] /= obj_count[key]
+
+        sorted_result[get_last_path(key)] = total_avg_success_rate[key]
+
+    return sorted_result
 
 def total_mean_latencies_obj_in_second(root_dir: str):
     total_lat_obj = calculate_total_mean_latencies(root_dir)
