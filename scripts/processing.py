@@ -87,7 +87,9 @@ def calculate_total_mean_latencies(root_dir: str) -> object:
     keys.sort()
     sorted_result = {}
     for key in keys:
-        sorted_result[get_last_path(key)] = total_mean_latencies_obj[key]
+        sorted_result[get_last_path(key)] = {
+            "avg": total_mean_latencies_obj[key]
+        }
 
     return sorted_result
 
@@ -145,8 +147,8 @@ def calculate_avg_success_rate(root_dir: str) -> object:
 def total_mean_latencies_obj_in_second(root_dir: str):
     total_lat_obj = calculate_total_mean_latencies(root_dir)
     for key in total_lat_obj:
-        sec = total_lat_obj[key] / ((10**6) * 1000)
-        total_lat_obj[key] = float("{0:.2f}".format(sec))
+        sec = total_lat_obj[key]["avg"] / ((10**6) * 1000)
+        total_lat_obj[key]["avg"] = float("{0:.2f}".format(sec))
 
     return total_lat_obj
 
