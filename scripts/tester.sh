@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# protocol=http
+if [[ -z ${protocol+x} || "$protocol" == "" ]]
+    then protocol=http
+fi
+
 # port=8000 # web-service
 if [[ -z ${port+x} || "$port" == "" ]]
     then port=9000
@@ -51,7 +56,7 @@ if [[ -z ${minrate+x} || "$minrate" == "" ]]
 fi
 
 echo "==========================="
-echo "target host $host:$port"
+echo "target host $protocol://$host:$port"
 echo "save test file to '$root_folder'"
 echo "test repetition $maxcounter"
 echo "pause between repetition $pause"
@@ -69,9 +74,14 @@ do
     for (( counter=0; counter<$maxcounter; counter++ ))
     do
         out=${out_folder}/${port}_${rate}rps_1s_${counter}.out
-        proxy="GET ${host}:${port}/api/sorts"
+        proxy="GET $protocol://${host}:${port}/api/sorts"
         # vegeta command
-        echo ${proxy} | vegeta attack -insecure -duration=${duration} -rate=${rate}/s  -timeout=${timeout} > ${out}
+        echo ${proxy} | vegeta attack \
+            -insecure \
+            -duration=${duration} \
+            -rate=${rate}/s \
+            -timeout=${timeout} \
+            > ${out}
         echo ${out}
         sleep ${pause}
     done
