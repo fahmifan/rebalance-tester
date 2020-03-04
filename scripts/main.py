@@ -2,10 +2,11 @@ import processing
 import os
 import json
 
-os.system("mkdir -p result")
-cases = ["load-balancer", "web-service"]
+root=os.getenv("root_folder")
+os.system(f"mkdir -p result")
+cases = ["web-service", "load-balancer"]
 for case in cases:
-    processing.preprocess(root_dir=f"raw/{case}")
+    processing.preprocess(root_dir=f"{root}/{case}")
     root_dir = f"json/{case}"
     
     latencies = processing.total_mean_latencies_obj_in_second(root_dir)
