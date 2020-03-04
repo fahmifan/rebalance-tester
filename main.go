@@ -99,6 +99,5 @@ func writeJSONOK(w http.ResponseWriter, res map[string]interface{}) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Write(j)
 }
