@@ -40,19 +40,19 @@ if [[ -z ${duration+x} || "$duration" == "" ]]
     then duration=1s
 fi
 
-# step=1000
+# step=100
 if [[ -z ${step+x} || "$step" == "" ]]
-    then step=1000
+    then step=100
 fi
 
-# maxrate=10000
-if [[ -z ${maxrate+x} || "$maxrate" == "" ]]
-    then maxrate=10000
-fi
-
-# minrate=1000
+# minrate=100
 if [[ -z ${minrate+x} || "$minrate" == "" ]]
-    then minrate=1000
+    then minrate=100
+fi
+
+# maxrate=1000
+if [[ -z ${maxrate+x} || "$maxrate" == "" ]]
+    then maxrate=1000
 fi
 
 echo "==========================="
