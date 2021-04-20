@@ -1,5 +1,12 @@
 let isStopTestLoadBalancer = false
 let isStopTestWebService = false
+let isWebServiceRun = true
+
+let stopTestLoadBalancerDOM = document.getElementById("stop-test-load-balancer")
+let startTestLoadBalancerDOM = document.getElementById("start-test-load-balancer")
+let startTestWebServiceDOM = document.getElementById("test-web-service")
+let stopTestWebServiceDOM = document.getElementById("stop-test-web-service")
+
 
 const fetchSorts = (url, opts) => new Promise((resolve, reject) => {  
     fetch(url)
@@ -19,7 +26,7 @@ const fetchSorts = (url, opts) => new Promise((resolve, reject) => {
             resolve(res)
         })
         .catch(err => {
-            console.error(err)
+            console.log(err)
             reject(err)
         })
 })
@@ -27,7 +34,7 @@ const fetchSorts = (url, opts) => new Promise((resolve, reject) => {
 async function testWebService(url) {
     let containerDOM = document.getElementById("web-service-response-container")
     for (let i = 0; i < 100; i++) {
-        if (isStopTestWebService) {
+        if (!isWebServiceRun) {
             let li = `<li>stopped</li>`
             containerDOM.innerHTML += li                    
             containerDOM.scrollTop = containerDOM.scrollHeight;
@@ -41,14 +48,17 @@ async function testWebService(url) {
             containerDOM.scrollTop = containerDOM.scrollHeight;
         } catch (err) {
             console.error(err)
-            break;
+            let li = `<li>${err}</li>`
+            containerDOM.innerHTML += li                    
+            containerDOM.scrollTop = containerDOM.scrollHeight;
+            // break;
         }
     }
 }
 
 async function testLoadBalancer() {
     let containerDOM = document.getElementById("response-container")
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; ; i++) {
         if (isStopTestLoadBalancer) {
             let li = `<li>stopped</li>`
             containerDOM.innerHTML += li                    
@@ -64,21 +74,52 @@ async function testLoadBalancer() {
             containerDOM.scrollTop = containerDOM.scrollHeight;
         } catch (err) {
             console.error(err)
-            break;
+            let li = `<li>failed</li>`
+            containerDOM.innerHTML += li                    
+            containerDOM.scrollTop = containerDOM.scrollHeight;
         }
     }
 }
 
-let testLoadBalancerDOM = document.getElementById("test-load-balancer")
-testLoadBalancerDOM.addEventListener("click", () => {
-    // disable the start button
-    testLoadBalancerDOM.setAttribute('disabled', true)
+function startLoadBalancerTest() {
+    isStopTestLoadBalancer = false
+}
 
+function stopLoadBalancerTest() {
+    isStopTestLoadBalancer = true
+}
+
+function startWebServiceTest() {
+    isWebServiceRun = true
+}
+
+function stopWebServiceTest() {
+    isWebServiceRun = false
+}
+
+// load balancers
+startTestLoadBalancerDOM.addEventListener("click", () => {
+    startLoadBalancerTest()
+    startTestLoadBalancerDOM.setAttribute('disabled', true)
+    stopTestLoadBalancerDOM.removeAttribute('disabled')
     testLoadBalancer()
 })
 
-let testWebServiceDOM = document.getElementById("test-web-service")
-testWebServiceDOM.addEventListener("click", () => {
+
+stopTestLoadBalancerDOM.addEventListener('click', function() {
+    stopLoadBalancerTest()
+    startTestLoadBalancerDOM.removeAttribute('disabled')
+    stopTestLoadBalancerDOM.setAttribute('disabled', true)
+})
+
+
+stopTestWebServiceDOM.addEventListener('click', function() {
+    stopWebServiceTest()
+    stopTestWebServiceDOM.setAttribute('disabled', true)
+    startTestWebServiceDOM.removeAttribute('disabled')
+})
+
+startTestWebServiceDOM.addEventListener("click", () => {
     let webServiceAddressDOM = document.getElementById("web-service-address")
     let webServiceAddress = webServiceAddressDOM.value
 
@@ -88,27 +129,11 @@ testWebServiceDOM.addEventListener("click", () => {
     }
 
     // disable the start button
-    testWebServiceDOM.setAttribute('disabled', true)
+    startTestWebServiceDOM.setAttribute('disabled', true)
+    stopTestWebServiceDOM.removeAttribute('disabled')
 
+    startWebServiceTest()
     testWebService(webServiceAddress)
 })
 
-let stopTestLoadBalancerDOM = document.getElementById("stop-test-load-balancer")
-stopTestLoadBalancerDOM.addEventListener('click', function() {
-    isStopTestLoadBalancer = true
-    // reenable the start button after 1000 ms
-    testLoadBalancerDOM.removeAttribute('disabled')
-    setTimeout(function() {
-        isStopTestLoadBalancer = false
-    }, 1000)
-})
 
-let stopTestWebServiceDOM = document.getElementById("stop-test-web-service")
-stopTestWebServiceDOM.addEventListener('click', function() {
-    // reenable the start button after 1000 ms
-    isStopTestWebService = true
-    testWebServiceDOM.removeAttribute('disabled')
-    setTimeout(function() {
-        isStopTestWebService = false
-    }, 1000)
-})
